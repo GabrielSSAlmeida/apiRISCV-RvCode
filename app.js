@@ -34,22 +34,57 @@ function runResult(query, ABI, ISA) {
   }
 }
 
+function findObject(instructionResult, string){
+  const index = instructionResult.binFrags.findIndex((line) => line.field === string)
+  let object = instructionResult.binFrags[index]
+  return object;
+}
+
 app.post('/', (req, res) => {
-  let data = req.body;
-  console.log(data)
-  res.json(runResult(data.query, data.ABI, data.ISA)); 
+  let {query, ABI, ISA} = req.body;
+  console.log(res.json(runResult(query, ABI, ISA))); 
 })
 
+app.post('/funct7', (req, res) => {
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
+
+  res.json(findObject(instructionResult, "funct7")); 
+})
+
+app.post('/rs2', (req, res) => {
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
+
+  res.json(findObject(instructionResult, "rs2")); 
+})
+
+app.post('/rs1', (req, res) => {
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
+
+  res.json(findObject(instructionResult, "rs1")); 
+})
+
+app.post('/funct3', (req, res) => {
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
+
+  res.json(findObject(instructionResult, "funct3")); 
+})
 
 app.post('/rd', (req, res) => {
-  let data = req.body;
-  console.log(data)
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
 
-  let instructionResult = runResult(data.query, data.ABI, data.ISA)
+  res.json(findObject(instructionResult, "rd")); 
+})
 
-  console.log(instructionResult.binFrags)
+app.post('/opcode', (req, res) => {
+  let {query, ABI, ISA} = req.body;
+  let instructionResult = runResult(query, ABI, ISA)
 
-  res.json("aa"); 
+  res.json(findObject(instructionResult, "opcode")); 
 })
 
 app.listen(8080)
