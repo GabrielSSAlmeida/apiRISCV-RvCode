@@ -7,51 +7,49 @@ import express from 'express'
 //var express = require("express")
 
 var app = express()
+app.use(express.json());
 
-function runResult(addToHistory = true) {
-    // Get the instruction from input box
-    let q = "addi a0, a1, 5";
-    const emptyQuery = q === "";
-  
-    // Push history state and set hash
-    if (addToHistory) {
-      // Build hash, but make it empty if input is empty
-      const hash = emptyQuery ? ' ' : '#'
-                                    + 'q='    + q.replace(/\s/g, '+')
-                                    + '&abi=' + true
-                                    + '&isa=' + 'AUTO';
-      // Only push state if hash has changed
-      /* if (hash.trimStart() !== window.location.hash) {
-        history.pushState(null, null, hash);
-      } */
-    }
-  
-    
-  
-    // Reset UI and exit early if query is empty
-    if (q === "") {
-      document.getElementById('results-container-box').style.display = 'none';
-      return;
-    }
-    
-    console.log("AAAAAA")
-    // Convert instruction
-    try {
-      const inst = new Instruction(q,
-        {
-          ABI: true,
-          ISA: COPTS_ISA['AUTO']
-        });
-        console.log(inst)
-      //renderConversion(inst, abiParameter.checked);
-    } catch (error) {
-      //renderError(error);
-    }
-  
-    // Display conversion results
-    //document.getElementById('results-container-box').style.display = 'initial';
+const errorQuery = {
+  'errorMessage': "",
 }
 
-runResult()
+function runResult(query, ABI, ISA) {
+  if (query === "") {
+    errorQuery.errorMessage = "Query is empty";
+    return errorQuery;
+  }
+  
+  // Convert instruction
+  try {
+    const inst = new Instruction(query,
+      {
+        ABI: ABI,
+        ISA: COPTS_ISA[ISA]
+      });
+      return inst;
+
+  } catch (error) {
+    errorQuery.errorMessage = "Error Instruction";
+    return errorQuery;
+  }
+}
+
+app.post('/', (req, res) => {
+  let data = req.body;
+  console.log(data)
+  res.json(runResult(data.query, data.ABI, data.ISA)); 
+})
+
+
+app.post('/rd', (req, res) => {
+  let data = req.body;
+  console.log(data)
+
+  let instructionResult = runResult(data.query, data.ABI, data.ISA)
+
+  console.log(instructionResult.binFrags)
+
+  res.json("aa"); 
+})
 
 app.listen(8080)
