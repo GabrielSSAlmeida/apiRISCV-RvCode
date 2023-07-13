@@ -1,17 +1,35 @@
-import { Instruction, convertRegToAbi } from "./core/Instruction.js";
-import { FRAG } from "./core/Constants.js";
-import { configDefault, COPTS_ISA } from "./core/Config.js";
+import { Instruction } from "./core/Instruction.js";
+import { COPTS_ISA } from "./core/Config.js";
 
 
 import express from 'express'
-//var express = require("express")
+const port = 8080
+const errorQuery = {
+  'errorMessage': "",
+}
+
 
 var app = express()
 app.use(express.json());
 
-const errorQuery = {
-  'errorMessage': "",
+
+function requestValidation(data){
+  const { query, ABI, ISA } = data
+  
+  //
+  if (query && ABI && ISA) { 
+    if(ABI !== (false || true))
+      return false
+    
+    if(ISA !== ('AUTO' || 'RV32I' || 'RV64I' || 'RV128I'))
+      return false
+    
+    return true
+  }
+  return false
 }
+
+
 
 function runResult(query, ABI, ISA) {
   if (query === "") {
@@ -35,9 +53,9 @@ function runResult(query, ABI, ISA) {
 }
 
 app.post('/', (req, res) => {
-  let data = req.body;
-  console.log(data)
-  res.json(runResult(data.query, data.ABI, data.ISA)); 
+  let { query, ABI, ISA } = req.body;
+
+  res.json(runResult(query, ABI, ISA)); 
 })
 
 
@@ -52,4 +70,6 @@ app.post('/rd', (req, res) => {
   res.json("aa"); 
 })
 
-app.listen(8080)
+app.listen(port, ()=>{
+  console.log("Init API")
+})
