@@ -1,17 +1,35 @@
-import { Instruction, convertRegToAbi } from "./core/Instruction.js";
-import { FRAG } from "./core/Constants.js";
-import { configDefault, COPTS_ISA } from "./core/Config.js";
+import { Instruction } from "./core/Instruction.js";
+import { COPTS_ISA } from "./core/Config.js";
 
 
 import express from 'express'
-//var express = require("express")
+const port = 8080
+const errorQuery = {
+  'errorMessage': "",
+}
+
 
 var app = express()
 app.use(express.json());
 
-const errorQuery = {
-  'errorMessage': "",
+
+function requestValidation(data){
+  const { query, ABI, ISA } = data
+  
+  //
+  if (query && ABI && ISA) { 
+    if(ABI !== (false || true))
+      return false
+    
+    if(ISA !== ('AUTO' || 'RV32I' || 'RV64I' || 'RV128I'))
+      return false
+    
+    return true
+  }
+  return false
 }
+
+
 
 function runResult(query, ABI, ISA) {
   if (query === "") {
@@ -41,8 +59,9 @@ function findObject(instructionResult, string){
 }
 
 app.post('/', (req, res) => {
-  let {query, ABI, ISA} = req.body;
-  console.log(res.json(runResult(query, ABI, ISA))); 
+  let { query, ABI, ISA } = req.body;
+
+  res.json(runResult(query, ABI, ISA)); 
 })
 
 app.post('/funct7', (req, res) => {
@@ -87,4 +106,6 @@ app.post('/opcode', (req, res) => {
   res.json(findObject(instructionResult, "opcode")); 
 })
 
-app.listen(8080)
+app.listen(port, ()=>{
+  console.log("Init API")
+})
