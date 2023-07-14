@@ -1,4 +1,19 @@
-import { Instruction } from "./core/Instruction.js";
+// SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * This API was based on codes from developer Joël Porquet-Lupine.
+ * His work can be found at https://gitlab.com/luplab/rvcodecjs/-/tree/main/
+ * and https://luplab.cs.ucdavis.edu/2022/06/03/rvcodec-js.html
+ */
+
+
+/**
+ *  Trabalho 2 - Organização e Arquitetura de Computadores
+ *  Camila Donda Ronchi - 13672220
+ *  Gabriel Sousa Santos de Almeida - 13837432
+ *  Lucas Piovani Ferreira - 13836813
+ */
+
+import { Instruction, convertRegToAbi } from "./core/Instruction.js";
 import { COPTS_ISA } from "./core/Config.js";
 
 
@@ -8,12 +23,11 @@ const errorQuery = {
   'errorMessage': "",
 }
 
-
 var app = express()
 app.use(express.json());
 
 
-function runResult(query, ABI, ISA) {
+function runResult(query, abi, isa) {
   if (query === "") {
     errorQuery.errorMessage = "Query is empty";
     return errorQuery;
@@ -23,9 +37,22 @@ function runResult(query, ABI, ISA) {
   try {
     const inst = new Instruction(query,
       {
-        ABI: ABI,
-        ISA: COPTS_ISA[ISA]
+        ABI: abi,
+        ISA: COPTS_ISA[isa]
       });
+      
+      //Converts name of registers to ABI type
+      if(abi){
+        inst.asmFrags.map(frag => {
+          let asm = convertRegToAbi(frag.asm);
+
+          if (frag.mem) {
+            asm = '(' + asm + ')';
+          }
+
+          frag.asm = asm;
+        });
+      }
       return inst;
 
   } catch (error) {
@@ -34,10 +61,13 @@ function runResult(query, ABI, ISA) {
   }
 }
 
+//checks if the sent request is valid
 function requestValidation(data){
   const { query, ABI, ISA } = data
   
+  //There must be keys 'query', 'ABI' and 'ISA'
   if (query && typeof ABI == "boolean" && ISA) {    
+    //valid types for ISA
     if(ISA != 'AUTO' && ISA != 'RV32I' && ISA != 'RV64I' && ISA != 'RV128I')
       return false
     
@@ -46,6 +76,7 @@ function requestValidation(data){
   return false
 }
 
+//Separate fields for each request
 function findObject(instructionResult, string){
   const index = instructionResult.binFrags.findIndex((line) => line.field === string)
   if(index === -1){
@@ -57,7 +88,7 @@ function findObject(instructionResult, string){
 
 }
 
-
+//main request. Send all information
 app.post('/', (req, res) => {
   let { query, ABI, ISA } = req.body;
 
@@ -76,6 +107,7 @@ app.post('/', (req, res) => {
   res.json(response); 
 })
 
+//send only the funct7 field
 app.post('/funct7', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
@@ -100,6 +132,7 @@ app.post('/funct7', (req, res) => {
   res.json(response); 
 })
 
+//send only the rs2 field
 app.post('/rs2', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
@@ -124,6 +157,8 @@ app.post('/rs2', (req, res) => {
   res.json(response); 
 })
 
+
+//send only the rs1 field
 app.post('/rs1', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
@@ -148,6 +183,7 @@ app.post('/rs1', (req, res) => {
   res.json(response);
 })
 
+//send only the funct3 field
 app.post('/funct3', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
@@ -172,6 +208,7 @@ app.post('/funct3', (req, res) => {
   res.json(response);
 })
 
+//send only the rd field
 app.post('/rd', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
@@ -196,6 +233,7 @@ app.post('/rd', (req, res) => {
   res.json(response);
 })
 
+//send only the opcode field
 app.post('/opcode', (req, res) => {
   let {query, ABI, ISA} = req.body;
   let instructionResult = runResult(query, ABI, ISA)
