@@ -258,6 +258,13 @@ app.post('/opcode', (req, res) => {
   res.json(response);
 })
 
+//main request. Send all information
+app.get('/', (req, res) => {
+  let str = "Use only POST methods in URLs\n\t/\n\t/funct7\n\t/rs1\n\t/rs2\n\t/rd\n\t/opcode\nspecified in the documentation."
+  res.send(str)
+})
+
+
 app.listen(port, ()=>{
   console.log("Init API")
 })
